@@ -41,7 +41,7 @@ const Footer = () => {
           <div className="text-gray-400 text-sm">
             <p>© 2024 ChilledPanda. All rights reserved.</p>
             <p className="mt-2">The future of AI-powered cryptocurrency</p>
-          </div>
+          </div> 
         </div>
       </div>
     </footer>

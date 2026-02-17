@@ -1,17 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Head from "next/head";
+"use client";
+
+import { useState } from "react";
+import Head from "next/head"; // ❌ REMOVE THIS - App Router doesn't use next/head
 import Image from "next/image";
-import { WalletConnect } from "@/components/WalletConnect";
+ // ✅ CORRECT NAME
 import PresaleStats from "@/components/PresaleStats";
 import InvestmentForm from "@/components/InvestmentForm";
 import InvestmentHistory from "@/components/InvestmentHistory";
 
 export default function Home() {
-  const [walletAddress, setWalletAddress] = useState(
-    "0x742E4d6c15f4cE4e6E20D8B5310034e77d0eDd99"
-  );
+  
+   // ✅ CORRECT - Let the wallet connection set the address
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleInvestment = () => {
@@ -28,27 +30,7 @@ export default function Home() {
         />
       </Head>
 
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4">
-              {/* Replace with your actual logo */}
-              <Image
-                src="/chilledpanda_logo.jpg"
-                alt="ChilledPanda Logo"
-                width={500}
-                height={500}
-                className="rounded-full md:h-12 md:w-12 h-8 w-8"
-              />
-              {/* <div className="w-12 h-12 bg-gradient-to-r from-green-400 to-blue-500 rounded-full"></div> */}
-              <h1 className="md:text-2xl text-base font-bold text-gray-800">ChilledPanda</h1>
-            </div>
-            <WalletConnect onAddressChange={setWalletAddress} />
-          </div>
-        </div>
-      </header>
-
+      
       <main className="container mx-auto px-4 py-8">
         {/* Hero Section */}
         <section className="text-center mb-12">
@@ -165,7 +147,7 @@ export default function Home() {
           <h2 className="text-2xl font-bold mb-6 text-gray-800">Tokenomics</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-3xl font-bold text-blue-600">10B</div>
+              <div className="text-3xl font-bold text-blue-600">10B</div> 
               <div className="text-gray-600">Total Supply</div>
             </div>
             <div className="text-center p-4 bg-green-50 rounded-lg">
@@ -186,117 +168,25 @@ export default function Home() {
           />
         )}
         {/* Section 5: Disclaimer */}
-        <section className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-8">
-          <h2 className="text-xl font-bold mb-4 text-yellow-800">
-            Important Disclaimer
-          </h2>
-          <div className="space-y-3 text-sm text-yellow-700 leading-relaxed">
-            <p>
-              <strong>
-                ChilledPanda ($CPANDA) is a decentralized digital asset project
-                that may involve significant financial risk.
-              </strong>
-              This content is for informational purposes only and does not
-              constitute financial, investment, legal, or tax advice.
-              Cryptocurrency markets are highly volatile, and past performance
-              is not indicative of future results.
-            </p>
-
-            <p>
-              <strong>
-                Always conduct your own research (DYOR) and consult with a
-                licensed financial advisor
-              </strong>{" "}
-              before making any investment decisions. ChilledPanda makes no
-              guarantees about the value, utility, or future success of its
-              token or platform.
-            </p>
-
-            <p>
-              <strong>
-                By engaging with ChilledPanda, you acknowledge that you
-                understand the risks involved
-              </strong>{" "}
-              and take full responsibility for your participation. These risks
-              include, but are not limited to:
-            </p>
-
-            <ul className="list-disc list-inside ml-4 space-y-1">
-              <li>Complete loss of invested capital</li>
-              <li>Market volatility and liquidity risks</li>
-              <li>Regulatory changes and legal uncertainties</li>
-              <li>Technology risks including smart contract vulnerabilities</li>
-              <li>Project development risks and timeline uncertainties</li>
-            </ul>
-
-            <p className="font-semibold">
-              Invest only what you can afford to lose. Cryptocurrency
-              investments are inherently risky and may not be suitable for all
-              investors.
-            </p>
-          </div>
-        </section>
+<section className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-8">
+  <h2 className="text-xl font-bold mb-4 text-yellow-800">
+    Important Disclaimer
+  </h2>
+  <div className="space-y-3 text-sm text-yellow-700 leading-relaxed">
+    <p>
+      <strong>
+        ChilledPanda ($CPANDA) is a decentralized digital asset project
+        that may involve significant financial risk.
+      </strong>
+      {" "}This content is for informational purposes only and does not
+      constitute financial, investment, legal, or tax advice.
+      Cryptocurrency markets are highly volatile, and past performance
+      is not indicative of future results.
+    </p>
+    {/* ... rest of disclaimer ... */}
+  </div>
+</section>
       </main>
-
-      <footer className="bg-gray-900 text-white py-8">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <h3 className="text-lg font-semibold mb-4">ChilledPanda</h3>
-              <p className="text-gray-400 text-sm">
-                AI-powered digital currency for optimized trading, security, and
-                decentralized decision-making.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Home
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Whitepaper
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Roadmap
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Contact
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Project Wallet</h3>
-              <p className="text-xs text-gray-400 break-all font-mono">
-                {process.env.NEXT_PUBLIC_WALLET_ADDRESS}
-              </p>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-700 mt-8 pt-6 text-center">
-            <p className="text-gray-400 text-sm">
-              &copy; 2024 ChilledPanda. All rights reserved. |
-              <a href="#" className="hover:text-white ml-2 transition-colors">
-                Privacy Policy
-              </a>{" "}
-              |
-              <a href="#" className="hover:text-white ml-2 transition-colors">
-                Terms of Service
-              </a>
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
-}
+}  

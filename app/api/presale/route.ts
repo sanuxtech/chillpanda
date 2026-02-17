@@ -1,7 +1,6 @@
 import dbConnect from "@/lib/db";
 import PresaleStats from "@/models/PresaleStats";
 import { NextRequest, NextResponse } from "next/server";
-import Investment from "@/models/Investment";
 
 export async function GET(req: NextRequest) {
   await dbConnect();
