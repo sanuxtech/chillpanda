@@ -1,15 +1,15 @@
 // lib/solana/usdtpayment.ts - UPDATED WITH YOUR WALLET
-import { 
-  Connection, 
-  PublicKey, 
-  Transaction, 
-  Keypair 
+import {
+  Connection,
+  PublicKey,
+  Transaction,
+  Keypair
 } from '@solana/web3.js';
-import { 
-  getOrCreateAssociatedTokenAccount, 
-  createTransferInstruction, 
+import {
+  getOrCreateAssociatedTokenAccount,
+  createTransferInstruction,
   TOKEN_PROGRAM_ID,
-  getAccount 
+  getAccount
 } from '@solana/spl-token';
 
 // ==================== TYPE DEFINITIONS ====================
@@ -31,7 +31,7 @@ const usdtMintAddress = process.env.NEXT_PUBLIC_USDT_MINT || USDT_MINTS[network 
 
 // ==================== YOUR PROJECT WALLET ====================
 // Your public project wallet - hardcoded to avoid env issues
-export const PROJECT_WALLET = new PublicKey('C7iZtdciSnAbKXPwvaWrnP37sV2opTwYW6oniFhXDDcv');
+export const PROJECT_WALLET = new PublicKey(process.env.NEXT_PUBLIC_WALLET_ADDRESS);
 
 // USDT mint address
 export const USDT_MINT = new PublicKey(usdtMintAddress);
@@ -55,7 +55,7 @@ export async function sendUSDT(
   try {
     const network = process.env.NEXT_PUBLIC_SOLANA_NETWORK;
     const isDevnet = network === 'devnet';
-    
+
     console.log('💰 Starting USDT transfer:', {
       network,
       sender: sender.toString(),
@@ -99,7 +99,7 @@ export async function sendUSDT(
       // 3. Check sender balance
       const senderBalance = await connection.getTokenAccountBalance(senderTokenAccount.address);
       const senderBalanceInUSDT = Number(senderBalance.value.amount) / 1_000_000;
-      
+
       if (senderBalanceInUSDT < amount) {
         throw new Error(`Insufficient USDT balance. You have ${senderBalanceInUSDT.toFixed(2)} USDT, trying to send ${amount} USDT`);
       }
@@ -116,7 +116,7 @@ export async function sendUSDT(
 
       // 5. Create and send transaction
       const transaction = new Transaction().add(transferInstruction);
-      
+
       // Get recent blockhash
       const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
       transaction.recentBlockhash = blockhash;
@@ -125,10 +125,10 @@ export async function sendUSDT(
       // 6. Sign and send transaction
       console.log('⏳ Requesting wallet signature...');
       const signedTransaction = await signTransaction(transaction);
-      
+
       console.log('🚀 Sending transaction...');
       const signature = await connection.sendRawTransaction(signedTransaction.serialize());
-      
+
       // 7. Confirm transaction
       console.log('📝 Confirming transaction:', signature);
       await connection.confirmTransaction({
@@ -136,10 +136,10 @@ export async function sendUSDT(
         lastValidBlockHeight,
         signature
       }, 'confirmed');
-      
+
       console.log('✅ USDT transfer successful! Signature:', signature);
       return signature;
-      
+
     } catch (error: any) {
       // If token account creation fails on devnet, use test transaction
       if (isDevnet && error.message.includes('TokenAccountNotFoundError')) {
@@ -148,10 +148,10 @@ export async function sendUSDT(
       }
       throw error;
     }
-    
+
   } catch (error: any) {
     console.error('❌ USDT transfer failed:', error);
-    
+
     // Provide user-friendly error messages
     if (error.message.includes('TokenAccountNotFoundError')) {
       throw new Error('You need a USDT token account. Try getting test USDT from a faucet.');
@@ -178,16 +178,16 @@ export async function getUSDTBalance(
 ): Promise<number> {
   try {
     const network = process.env.NEXT_PUBLIC_SOLANA_NETWORK;
-    
+
     // Return mock balance on devnet for testing
     if (network === 'devnet') {
       console.log('🧪 Devnet mode: Returning mock USDT balance for testing');
       return 10000; // High balance for testing
     }
-    
+
     // Check real balance on mainnet
     console.log('💰 Checking USDT balance on mainnet for:', walletAddress.toString());
-    
+
     const accounts = await connection.getTokenAccountsByOwner(
       walletAddress,
       { mint: USDT_MINT }
@@ -199,18 +199,18 @@ export async function getUSDTBalance(
 
     const tokenAccountInfo = await getAccount(connection, accounts.value[0].pubkey);
     const balance = Number(tokenAccountInfo.amount) / 1_000_000;
-    
+
     console.log('✅ USDT Balance fetched:', balance.toFixed(2), 'USDT');
     return balance;
   } catch (error) {
     console.error('❌ Error getting USDT balance:', error);
-    
+
     // On devnet or error, return mock balance
     if (process.env.NEXT_PUBLIC_SOLANA_NETWORK === 'devnet') {
       console.log('🧪 Returning mock balance after error');
       return 10000;
     }
-    
+
     return 0;
   }
 }
@@ -236,22 +236,22 @@ export async function sendTestUSDT(
     const { blockhash } = await connection.getLatestBlockhash();
     mockTransaction.recentBlockhash = blockhash;
     mockTransaction.feePayer = sender;
-    
+
     // Get real signature from wallet for simulation
     const signedTransaction = await signTransaction(mockTransaction);
-    
+
     // Generate mock transaction hash
-    const mockSignature = 'test_usdt_tx_' + 
-      Date.now().toString(36) + '_' + 
-      Math.random().toString(36).substr(2, 9) + 
-      '_' + 
+    const mockSignature = 'test_usdt_tx_' +
+      Date.now().toString(36) + '_' +
+      Math.random().toString(36).substr(2, 9) +
+      '_' +
       (signedTransaction.signature?.toString('hex').slice(0, 16) || 'mock_signature');
-    
+
     // Simulate processing delay
     await new Promise(resolve => setTimeout(resolve, 1500));
-    
+
     console.log('✅ Test transaction completed:', mockSignature);
-    
+
     return mockSignature;
   } catch (error: any) {
     console.error('Test USDT transfer failed:', error);
@@ -271,7 +271,7 @@ export async function hasUSDTAccount(
     if (process.env.NEXT_PUBLIC_SOLANA_NETWORK === 'devnet') {
       return true;
     }
-    
+
     const accounts = await connection.getTokenAccountsByOwner(
       walletAddress,
       { mint: USDT_MINT }
@@ -293,7 +293,7 @@ export async function createUSDTAccount(
 ): Promise<PublicKey> {
   try {
     console.log('🏦 Creating USDT token account for:', walletAddress.toString());
-    
+
     const tokenAccount = await getOrCreateAssociatedTokenAccount(
       connection,
       { publicKey: walletAddress, secretKey: new Uint8Array(0) } as Keypair,
@@ -301,7 +301,7 @@ export async function createUSDTAccount(
       walletAddress,
       true
     );
-    
+
     console.log('✅ USDT token account created:', tokenAccount.address.toString());
     return tokenAccount.address;
   } catch (error: any) {
@@ -315,17 +315,17 @@ export async function createUSDTAccount(
  */
 export function getConfigStatus() {
   const isDevnet = network === 'devnet';
-  
+
   return {
     isDevnet,
     network,
     projectWallet: PROJECT_WALLET.toString(),
     usdtMint: USDT_MINT.toString(),
     projectWalletValid: true, // Hardcoded so always valid
-    status: isDevnet 
-      ? 'DEVNET (Test Mode) - Mock USDT balances used' 
+    status: isDevnet
+      ? 'DEVNET (Test Mode) - Mock USDT balances used'
       : 'MAINNET (Production) - Ready for real transactions',
-    
+
     // Helper methods
     getInstructions() {
       if (isDevnet) {

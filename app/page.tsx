@@ -1,19 +1,18 @@
 "use client";
 
-"use client";
-
 import { useState } from "react";
 import Head from "next/head"; // ❌ REMOVE THIS - App Router doesn't use next/head
 import Image from "next/image";
- // ✅ CORRECT NAME
+
+// ✅ CORRECT NAME
 import PresaleStats from "@/components/PresaleStats";
 import InvestmentForm from "@/components/InvestmentForm";
 import InvestmentHistory from "@/components/InvestmentHistory";
 
 export default function Home() {
-  
-   // ✅ CORRECT - Let the wallet connection set the address
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  // ✅ CORRECT - Let the wallet connection set the address
+
+  const [walletAddress, setWalletAddress] = useState<string | null>("");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleInvestment = () => {
@@ -30,7 +29,6 @@ export default function Home() {
         />
       </Head>
 
-      
       <main className="container mx-auto px-4 py-8">
         {/* Hero Section */}
         <section className="text-center mb-12">
@@ -137,7 +135,6 @@ export default function Home() {
           <div className="space-y-8">
             <PresaleStats />
             <InvestmentForm
-              address={walletAddress}
               onInvestment={handleInvestment}
             />
           </div>
@@ -147,7 +144,7 @@ export default function Home() {
           <h2 className="text-2xl font-bold mb-6 text-gray-800">Tokenomics</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-3xl font-bold text-blue-600">10B</div> 
+              <div className="text-3xl font-bold text-blue-600">10B</div>
               <div className="text-gray-600">Total Supply</div>
             </div>
             <div className="text-center p-4 bg-green-50 rounded-lg">
@@ -161,32 +158,30 @@ export default function Home() {
           </div>
         </section>
         {/* Investment History */}
-        {walletAddress && (
-          <InvestmentHistory
-            address={walletAddress}
-            refreshTrigger={refreshTrigger}
-          />
-        )}
+        <InvestmentHistory
+          refreshTrigger={refreshTrigger}
+        />
+
         {/* Section 5: Disclaimer */}
-<section className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-8">
-  <h2 className="text-xl font-bold mb-4 text-yellow-800">
-    Important Disclaimer
-  </h2>
-  <div className="space-y-3 text-sm text-yellow-700 leading-relaxed">
-    <p>
-      <strong>
-        ChilledPanda ($CPANDA) is a decentralized digital asset project
-        that may involve significant financial risk.
-      </strong>
-      {" "}This content is for informational purposes only and does not
-      constitute financial, investment, legal, or tax advice.
-      Cryptocurrency markets are highly volatile, and past performance
-      is not indicative of future results.
-    </p>
-    {/* ... rest of disclaimer ... */}
-  </div>
-</section>
+        <section className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-8">
+          <h2 className="text-xl font-bold mb-4 text-yellow-800">
+            Important Disclaimer
+          </h2>
+          <div className="space-y-3 text-sm text-yellow-700 leading-relaxed">
+            <p>
+              <strong>
+                ChilledPanda ($CPANDA) is a decentralized digital asset project
+                that may involve significant financial risk.
+              </strong>{" "}
+              This content is for informational purposes only and does not
+              constitute financial, investment, legal, or tax advice.
+              Cryptocurrency markets are highly volatile, and past performance
+              is not indicative of future results.
+            </p>
+            {/* ... rest of disclaimer ... */}
+          </div>
+        </section>
       </main>
     </div>
   );
-}  
+}
