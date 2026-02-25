@@ -36,6 +36,7 @@ const InvestmentForm = ({ onInvestment }: InvestmentFormProps) => {
 
       try {
         const balance = await getUSDTBalance(connection, publicKey);
+        console.log({ balance });
 
         setUsdtBalance(balance);
       } catch (error) {
@@ -116,18 +117,22 @@ const InvestmentForm = ({ onInvestment }: InvestmentFormProps) => {
 
       // 2. Save investment record to API
       console.log("💾 Saving to API...");
-
-      const apiData = {
-        walletAddress: publicKey.toString(),
-        amountUSDT: amountNum,
-        paymentMethod,
-        usdtTransactionHash: usdtTxHash,
-        tokensAllocated: tokensAllocated,
-        network: isDevnet ? "devnet" : "mainnet-beta",
-        status: "paid",
-        claimable: false,
-        timestamp: new Date().toISOString(),
-      };
+      const apiData = isDevnet
+        ? {
+            walletAddress: publicKey.toString(),
+            amountUSDT: amountNum,
+            paymentMethod,
+            usdtTransactionHash: usdtTxHash,
+            tokensAllocated: tokensAllocated,
+            network: "devnet",
+            status: "paid",
+            claimable: false,
+          }
+        : {
+            walletAddress: publicKey.toString(),
+            signature: usdtTxHash,
+            network: "mainnet-beta",
+          };
 
       console.log("📤 Sending to API:", apiData);
 

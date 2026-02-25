@@ -1,11 +1,11 @@
 // lib/solana/cpdtokens.ts
-import { 
-  Connection, 
-  PublicKey, 
+import {
+  Connection,
+  PublicKey,
   Transaction,
   Keypair
 } from '@solana/web3.js';
-import { 
+import {
   getOrCreateAssociatedTokenAccount,
   createTransferInstruction,
   TOKEN_PROGRAM_ID,
@@ -14,7 +14,7 @@ import {
 
 // CPD Token Mint Address
 export const CPD_MINT = new PublicKey(
-  process.env.NEXT_PUBLIC_CPD_MINT || '6K8hHKo1dsykGoyXbHgpHQzQpzvatmgdpeusAnK1nB5F'
+  process.env.NEXT_PUBLIC_CPD_MINT
 );
 
 // CPD has 9 decimals (standard for Solana tokens)
@@ -75,7 +75,7 @@ export async function sendCPDTokens(
     // 3. Check project's CPD balance
     const fromBalance = await connection.getTokenAccountBalance(fromTokenAccount.address);
     const fromBalanceInCPD = Number(fromBalance.value.amount) / Math.pow(10, CPD_DECIMALS);
-    
+
     if (fromBalanceInCPD < amount) {
       throw new Error(`Insufficient CPD tokens in project wallet. Available: ${fromBalanceInCPD.toLocaleString()} CPD, Needed: ${amount.toLocaleString()} CPD`);
     }
@@ -92,7 +92,7 @@ export async function sendCPDTokens(
 
     // 5. Create and send transaction
     const transaction = new Transaction().add(transferInstruction);
-    
+
     // Get recent blockhash
     const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
     transaction.recentBlockhash = blockhash;
@@ -101,17 +101,17 @@ export async function sendCPDTokens(
     // 6. Sign and send transaction
     console.log('Signing CPD transfer transaction...');
     const signedTransaction = await signTransaction(transaction);
-    
+
     console.log('Sending CPD transfer...');
     const signature = await connection.sendRawTransaction(signedTransaction.serialize());
-    
+
     // 7. Confirm transaction
     await connection.confirmTransaction({
       blockhash,
       lastValidBlockHeight,
       signature
     }, 'confirmed');
-    
+
     console.log('✅ CPD tokens sent successfully! Signature:', signature);
     return signature;
   } catch (error) {
@@ -139,7 +139,7 @@ export async function getCPDBalance(
 
     const tokenAccountInfo = await getAccount(connection, accounts.value[0].pubkey);
     const balance = Number(tokenAccountInfo.amount) / Math.pow(10, CPD_DECIMALS);
-    
+
     return balance;
   } catch (error) {
     console.error('Error getting CPD balance:', error);
@@ -157,7 +157,7 @@ export function checkPresaleCap(totalSold: number): {
 } {
   const PRESALE_CAP = 1_000_000_000; // 1 billion tokens
   const remaining = PRESALE_CAP - totalSold;
-  
+
   return {
     reached: totalSold >= PRESALE_CAP,
     remaining: Math.max(0, remaining),
@@ -184,21 +184,21 @@ export async function sendTestCPDTokens(
   try {
     // Actually create a token account and transfer on devnet
     // This requires you to have CPD tokens deployed on devnet
-    
+
     // For now, create a real transaction but with a mock signature
     const mockTransaction = new Transaction();
     const { blockhash } = await connection.getLatestBlockhash();
     mockTransaction.recentBlockhash = blockhash;
     mockTransaction.feePayer = toWallet;
-    
+
     // Actually sign the transaction (real signature)
     const signedTransaction = await signTransaction(mockTransaction);
-    
+
     // This is a REAL transaction signature, but for an empty transaction
     const signature = signedTransaction.signature?.toString('base64') || 'mock_signature';
-    
+
     console.log('✅ Test CPD transaction created (real signature):', signature.slice(0, 20) + '...');
-    
+
     return 'test_cpd_' + signature;
   } catch (error) {
     console.error('Test CPD transfer error:', error);
