@@ -46,6 +46,8 @@ console.log("- Is Devnet:", network === "devnet");
 // ==================== MAIN FUNCTIONS ====================
 
 // Update the sendUSDT function in usdtpayment.ts
+// lib/solana/usdtpayment.ts - MAINNET PRODUCTION VERSION
+
 export async function sendUSDT(
   connection: Connection,
   sender: PublicKey,
@@ -54,140 +56,156 @@ export async function sendUSDT(
 ): Promise<string> {
   try {
     const network = process.env.NEXT_PUBLIC_SOLANA_NETWORK;
-    const isDevnet = network === "devnet";
-
+    
     console.log("💰 Starting USDT transfer:", {
       network,
       sender: sender.toString(),
       amount,
-      isDevnet,
       projectWallet: PROJECT_WALLET.toString(),
     });
-
-    // If devnet, use test transaction (bypass real USDT)
-    if (isDevnet) {
-      console.log(
-        "🧪 Devnet mode: Using test transaction (no real USDT needed)"
-      );
-      return await sendTestUSDT(connection, sender, amount, signTransaction);
-    }
 
     // USDT has 6 decimals on Solana
     const amountInSmallestUnits = BigInt(Math.floor(amount * 1_000_000));
 
-    try {
-      // 1. Get sender's USDT token account
-      const senderTokenAccount = await getOrCreateAssociatedTokenAccount(
-        connection,
-        { publicKey: sender, secretKey: new Uint8Array(0) } as Keypair,
+    // ============ HANDLE SENDER'S USDT ACCOUNT ============
+    console.log("🔍 Checking sender's USDT token account...");
+    
+    // Check if sender already has a USDT token account
+    const senderAccounts = await connection.getTokenAccountsByOwner(sender, {
+      mint: USDT_MINT,
+    });
+
+    let senderTokenAccount: PublicKey;
+
+    if (senderAccounts.value.length === 0) {
+      // User doesn't have a USDT account - we need to create one
+      console.log("⚠️ No USDT account found. Creating one for the user...");
+      
+      // Create the associated token account instruction
+      const { createAssociatedTokenAccountInstruction, getAssociatedTokenAddress } = await import('@solana/spl-token');
+      
+      // Derive the associated token account address
+      const associatedTokenAccount = await getAssociatedTokenAddress(
         USDT_MINT,
-        sender,
-        true
+        sender
       );
 
-      console.log(
-        "✅ Sender token account:",
-        senderTokenAccount.address.toString()
+      const createAccountInstruction = createAssociatedTokenAccountInstruction(
+        sender, // Payer (user pays the fee)
+        associatedTokenAccount, // Associated token account address
+        sender, // Owner of the new account
+        USDT_MINT // USDT mint
       );
-
-      // 2. Get project's USDT token account
-      const projectTokenAccount = await getOrCreateAssociatedTokenAccount(
-        connection,
-        { publicKey: sender, secretKey: new Uint8Array(0) } as Keypair,
-        USDT_MINT,
-        PROJECT_WALLET,
-        true
-      );
-
-      console.log(
-        "✅ Project token account:",
-        projectTokenAccount.address.toString()
-      );
-
-      // 3. Check sender balance
-      const senderBalance = await connection.getTokenAccountBalance(
-        senderTokenAccount.address
-      );
-      const senderBalanceInUSDT =
-        Number(senderBalance.value.amount) / 1_000_000;
-
-      if (senderBalanceInUSDT < amount) {
-        throw new Error(
-          `Insufficient USDT balance. You have ${senderBalanceInUSDT.toFixed(
-            2
-          )} USDT, trying to send ${amount} USDT`
-        );
-      }
-
-      // 4. Create transfer instruction
-      const transferInstruction = createTransferInstruction(
-        senderTokenAccount.address, // source
-        projectTokenAccount.address, // destination
-        sender, // owner
-        amountInSmallestUnits,
-        [], // multiSigners
-        TOKEN_PROGRAM_ID
-      );
-
-      // 5. Create and send transaction
-      const transaction = new Transaction().add(transferInstruction);
-
-      // Get recent blockhash
-      const { blockhash, lastValidBlockHeight } =
-        await connection.getLatestBlockhash();
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = sender;
-
-      // 6. Sign and send transaction
-      console.log("⏳ Requesting wallet signature...");
-      const signedTransaction = await signTransaction(transaction);
-
-      console.log("🚀 Sending transaction...");
-      const signature = await connection.sendRawTransaction(
-        signedTransaction.serialize()
-      );
-
-      // 7. Confirm transaction
-      console.log("📝 Confirming transaction:", signature);
-      await connection.confirmTransaction(
-        {
-          blockhash,
-          lastValidBlockHeight,
-          signature,
-        },
-        "confirmed"
-      );
-
-      console.log("✅ USDT transfer successful! Signature:", signature);
-      return signature;
-    } catch (error: any) {
-      // If token account creation fails on devnet, use test transaction
-      if (isDevnet && error.message.includes("TokenAccountNotFoundError")) {
-        console.log(
-          "⚠️ No USDT token account on devnet, using test transaction"
-        );
-        return await sendTestUSDT(connection, sender, amount, signTransaction);
-      }
-      throw error;
+      
+      // Create transaction with account creation
+      const setupTransaction = new Transaction().add(createAccountInstruction);
+      const { blockhash } = await connection.getLatestBlockhash();
+      setupTransaction.recentBlockhash = blockhash;
+      setupTransaction.feePayer = sender;
+      
+      // User signs to create account (costs ~0.002 SOL)
+      console.log("📝 Requesting signature for account creation...");
+      const signedSetupTx = await signTransaction(setupTransaction);
+      
+      console.log("🚀 Sending account creation transaction...");
+      const setupSignature = await connection.sendRawTransaction(signedSetupTx.serialize());
+      
+      // Wait for account creation to confirm
+      await connection.confirmTransaction(setupSignature, "confirmed");
+      console.log("✅ USDT account created! Signature:", setupSignature);
+      
+      // Get the newly created account
+      const newAccounts = await connection.getTokenAccountsByOwner(sender, {
+        mint: USDT_MINT,
+      });
+      senderTokenAccount = newAccounts.value[0].pubkey;
+    } else {
+      // User already has a USDT account
+      senderTokenAccount = senderAccounts.value[0].pubkey;
+      console.log("✅ Found existing USDT account:", senderTokenAccount.toString());
     }
+
+    // ============ CHECK SENDER'S BALANCE ============
+    const senderBalance = await connection.getTokenAccountBalance(senderTokenAccount);
+    const senderBalanceInUSDT = Number(senderBalance.value.amount) / 1_000_000;
+
+    if (senderBalanceInUSDT < amount) {
+      throw new Error(
+        `Insufficient USDT balance. You have ${senderBalanceInUSDT.toFixed(2)} USDT, need ${amount} USDT`
+      );
+    }
+
+    // ============ HANDLE PROJECT'S USDT ACCOUNT ============
+    console.log("🔍 Setting up project's USDT token account...");
+    
+    // For project wallet, we need to create/use its token account
+    // This requires the project wallet to sign, but since we can't do that in browser,
+    // we need a different approach for production
+    
+    let projectTokenAccount: PublicKey;
+    
+    // Check if project already has a USDT token account
+    const projectAccounts = await connection.getTokenAccountsByOwner(PROJECT_WALLET, {
+      mint: USDT_MINT,
+    });
+    
+    if (projectAccounts.value.length === 0) {
+      // This is a problem - project wallet doesn't have a USDT account
+      // In production, you should create this account beforehand
+      console.error("❌ Project wallet doesn't have a USDT token account!");
+      throw new Error(
+        "Project wallet not properly configured. Please contact support."
+      );
+    } else {
+      projectTokenAccount = projectAccounts.value[0].pubkey;
+      console.log("✅ Found project USDT account:", projectTokenAccount.toString());
+    }
+
+    // ============ CREATE TRANSFER INSTRUCTION ============
+    const transferInstruction = createTransferInstruction(
+      senderTokenAccount,    // source
+      projectTokenAccount,   // destination
+      sender,               // owner
+      amountInSmallestUnits,
+      [],                   // multiSigners
+      TOKEN_PROGRAM_ID
+    );
+
+    // ============ SEND TRANSACTION ============
+    const transaction = new Transaction().add(transferInstruction);
+    
+    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+    transaction.recentBlockhash = blockhash;
+    transaction.feePayer = sender;
+
+    console.log("⏳ Requesting wallet signature for transfer...");
+    const signedTransaction = await signTransaction(transaction);
+
+    console.log("🚀 Sending transfer transaction...");
+    const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+
+    // Confirm transaction
+    console.log("📝 Confirming transaction:", signature);
+    await connection.confirmTransaction(
+      {
+        blockhash,
+        lastValidBlockHeight,
+        signature,
+      },
+      "confirmed"
+    );
+
+    console.log("✅ USDT transfer successful! Signature:", signature);
+    return signature;
+
   } catch (error: any) {
     console.error("❌ USDT transfer failed:", error);
-
+    
     // Provide user-friendly error messages
-    if (error.message.includes("TokenAccountNotFoundError")) {
-      throw new Error(
-        "You need a USDT token account. Try getting test USDT from a faucet."
-      );
-    } else if (error.message.includes("Insufficient USDT balance")) {
-      throw new Error(
-        `Insufficient USDT balance. Please ensure you have enough USDT in your wallet.`
-      );
+    if (error.message.includes("insufficient lamports")) {
+      throw new Error("You need SOL in your wallet to pay for transaction fees.");
     } else if (error.message.includes("User rejected")) {
       throw new Error("Transaction was rejected by your wallet.");
-    } else if (error.message.includes("Transaction was not confirmed")) {
-      throw new Error("Transaction timed out. Please try again.");
-    } else if (error.message.includes("Blockhash not found")) {
-      throw new Error("Network error. Please try again.");
     } else {
       throw new Error(`Payment failed: ${error.message}`);
     }
@@ -378,7 +396,7 @@ export function getConfigStatus() {
       } else {
         return [
           "✅ Connect Phantom wallet to mainnet",
-          "✅ Ensure you have SOL for gas fees",
+   "✅ Ensure you have SOL for gas fees",
           "✅ Have USDT on Solana network",
           "✅ Ready for real investments",
         ];

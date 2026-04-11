@@ -1,5 +1,15 @@
+// components/layout/Footer.tsx
+"use client";
+
+import { useState, useEffect } from "react";
 
 const Footer = () => {
+  const [currentYear, setCurrentYear] = useState<number>(2024);
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
+
   return (
     <footer className="bg-black/50 border-t border-gray-800 py-12 px-4">
       <div className="container mx-auto max-w-6xl">
@@ -26,7 +36,7 @@ const Footer = () => {
               results.
             </p>
             <p className="text-gray-300 text-sm leading-relaxed mt-3">
-              Always conduct your own research (DYOR) and consult with a
+              Always conduct your own research and consult with a
               licensed financial advisor before making any investment decisions.
               ChilledPanda makes no guarantees about the value, utility, or
               future success of its token or platform.
@@ -39,9 +49,9 @@ const Footer = () => {
           </div>
 
           <div className="text-gray-400 text-sm">
-            <p>© 2024 ChilledPanda. All rights reserved.</p>
+            <p>© {currentYear} ChilledPanda. All rights reserved.</p>
             <p className="mt-2">The future of AI-powered cryptocurrency</p>
-          </div> 
+          </div>
         </div>
       </div>
     </footer>

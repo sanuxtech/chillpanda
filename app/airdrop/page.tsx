@@ -1,3 +1,5 @@
 import Airdrop from "@/screens/airdrop";
 
-export default Airdrop;
+export default function AirdropPage() {
+  return <Airdrop />;
+}

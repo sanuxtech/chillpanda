@@ -1,4 +1,4 @@
-// models/PresaleStats.ts - CORRECTED VERSION
+// models/PresaleStats.ts - UPDATED FOR FRONTEND STATS
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IPresaleStats extends Document {
@@ -6,6 +6,7 @@ export interface IPresaleStats extends Document {
   totalInvestors: number;
   totalTokensAllocated: number;
   totalTokensClaimed: number;
+  totalCPDSold: number;  // Added for frontend compatibility
   presaleCap: number;
   softCap: number;
   hardCap: number;
@@ -40,6 +41,11 @@ const PresaleStatsSchema: Schema = new Schema({
     min: 0
   },
   totalTokensClaimed: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  totalCPDSold: {
     type: Number,
     default: 0,
     min: 0

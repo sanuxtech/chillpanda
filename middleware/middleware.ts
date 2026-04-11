@@ -1,4 +1,4 @@
-// app/middleware/rateLimit.ts
+// middleware.ts (at root level)
 import { NextRequest, NextResponse } from 'next/server';
 
 // In-memory rate limiting (upgrade to Redis for production)
@@ -6,12 +6,12 @@ const rateLimit = new Map<string, { count: number; timestamp: number }>();
 const WINDOW_MS = 60 * 1000; // 1 minute
 const MAX_REQUESTS = 10;
 
-export function rateLimitMiddleware(request: NextRequest): NextResponse | null {
+// ✅ CHANGE: Rename this to 'middleware' (not rateLimitMiddleware)
+export function middleware(request: NextRequest) {
   const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
   const path = request.nextUrl.pathname;
   const key = `rate-limit:${ip}:${path}`;
   
-  // Use a stable timestamp approach
   const now = Date.now();
   const windowStart = now - WINDOW_MS;
   
@@ -40,7 +40,6 @@ export function rateLimitMiddleware(request: NextRequest): NextResponse | null {
   if (entry.count > MAX_REQUESTS) {
     const retryAfter = Math.ceil((entry.timestamp + WINDOW_MS - now) / 1000);
     
-    // Return response without affecting client-side hydration
     return NextResponse.json(
       { 
         success: false, 
@@ -67,7 +66,3 @@ export function rateLimitMiddleware(request: NextRequest): NextResponse | null {
   
   return response;
 }
-
-export const config = {
-  matcher: '/api/:path*', // Only run on API routes
-};

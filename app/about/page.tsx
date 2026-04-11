@@ -1,3 +1,5 @@
-import About from "@/screens/about";
+import About from "@/screens/about";   
 
-export default About;
+export default function AboutPage() {
+  return <About />;
+}

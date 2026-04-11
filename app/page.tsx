@@ -157,6 +157,43 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+      
+{/* About Section */}
+<section id="about-section" className="bg-white rounded-xl shadow-lg p-6 mb-8 scroll-mt-20">
+  <h2 className="text-2xl font-bold mb-6 text-gray-800">About Chillpanda</h2>
+  <div className="space-y-4">
+    <p className="text-gray-700">
+      Chillpanda is revolutionizing the cryptocurrency landscape by combining 
+      artificial intelligence with blockchain technology. Our mission is to 
+      create a smarter, more secure, and efficient digital currency that adapts 
+      to market conditions in real-time.
+    </p>
+    <p className="text-gray-700">
+      Founded in 2024, Chillpanda leverages advanced machine learning algorithms 
+      to optimize trading strategies, enhance security protocols, and ensure 
+      scalable performance. Our team of blockchain experts and AI specialists 
+      are dedicated to building the future of decentralized finance.
+    </p>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+      <div className="flex items-start space-x-3">
+        <span className="text-green-500 text-xl">✓</span>
+        <div>
+          <h3 className="font-semibold text-gray-800">AI-Powered Trading</h3>
+          <p className="text-sm text-gray-600">Real-time market analysis and automated strategies</p>
+        </div>
+      </div>
+      <div className="flex items-start space-x-3">
+        <span className="text-green-500 text-xl">✓</span>
+        <div>
+          <h3 className="font-semibold text-gray-800">Community Governed</h3>
+          <p className="text-sm text-gray-600">Decisions made by token holders through DAO</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
         {/* Investment History */}
         <InvestmentHistory
           refreshTrigger={refreshTrigger}
