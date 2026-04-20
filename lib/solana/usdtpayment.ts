@@ -30,7 +30,7 @@ console.log("usedt mint address", usdtMintAddress);
 // ==================== YOUR PROJECT WALLET ====================
 // Your public project wallet - hardcoded to avoid env issues
 export const PROJECT_WALLET = new PublicKey(
-  process.env.NEXT_PUBLIC_WALLET_ADDRESS
+  process.env.NEXT_PUBLIC_WALLET_ADDRESS || ''
 );
 
 // USDT mint address

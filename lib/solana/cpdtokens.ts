@@ -14,8 +14,8 @@ import {
 
 // CPD Token Mint Address
 export const CPD_MINT = new PublicKey(
-  process.env.NEXT_PUBLIC_CPD_MINT
-);
+  process.env.NEXT_PUBLIC_CPD_MINT || ''
+); 
 
 // CPD has 9 decimals (standard for Solana tokens)
 export const CPD_DECIMALS = 9;

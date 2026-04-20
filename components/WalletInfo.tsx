@@ -2,6 +2,9 @@
 const PROJECT_WALLET = process.env.NEXT_PUBLIC_WALLET_ADDRESS;
 
 export default function WalletInfo() {
+  if (!PROJECT_WALLET) {
+    return null;
+  }
   const copyToClipboard = () => {
     navigator.clipboard.writeText(PROJECT_WALLET);
     alert("Wallet address copied to clipboard!");

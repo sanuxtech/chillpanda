@@ -3,10 +3,6 @@ import mongoose from 'mongoose';
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
-if (!MONGODB_URI) {
-  throw new Error('❌ Please define MONGODB_URI in .env.local');
-}
-
 interface MongooseCache {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
@@ -23,6 +19,10 @@ if (!global.mongoose) {
 }
 
 export default async function dbConnect(): Promise<typeof mongoose> {
+  if (!MONGODB_URI) {
+  throw new Error('❌ Please define MONGODB_URI in .env.local');
+}
+
   if (cached.conn) {
     console.log('📊 Using cached MongoDB connection');
     return cached.conn;
@@ -36,7 +36,7 @@ export default async function dbConnect(): Promise<typeof mongoose> {
       socketTimeoutMS: 45000,
     };
 
-    console.log('🔗 Connecting to MongoDB Atlas...', MONGODB_URI.substring(0, 50) + '...');
+    // console.log('🔗 Connecting to MongoDB Atlas...', MONGODB_URI.substring(0, 50) + '...');
     
     cached.promise = mongoose.connect(MONGODB_URI, opts)
       .then((mongoose) => {
