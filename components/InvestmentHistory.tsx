@@ -69,7 +69,9 @@ export default function InvestmentHistory({
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `API Error: ${response.status}`);
+        // throw new Error(errorData.error || `API Error: ${response.status}`);
+                console.log(errorData.error || `API Error: ${response.status}`);
+
       }
 
       const data = await response.json();

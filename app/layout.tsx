@@ -3,11 +3,9 @@ import '@solana/wallet-adapter-react-ui/styles.css';
 import { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
-import StyledJsxRegistry from "./registry";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { WalletProviderWrapper } from "./WalletProviderWrapper"; // 👈 CHANGE THIS
+import { WalletProviderWrapper } from '@/components/WalletProviderWrapper';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,8 +32,7 @@ export default function RootLayout({
       <body
         className={`flex-1 ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <StyledJsxRegistry>
-          <GluestackUIProvider mode="light">
+         
             <WalletProviderWrapper> {/* 👈 USE THE NEW WRAPPER */}
               <div className="h-screen w-screen overflow-hidden overflow-y-scroll flex flex-col">
                 <Header />
@@ -45,8 +42,7 @@ export default function RootLayout({
                 <Footer />
               </div>
             </WalletProviderWrapper>
-          </GluestackUIProvider>
-        </StyledJsxRegistry>
+         
       </body>
     </html>
   );

@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Head from "next/head"; // ❌ REMOVE THIS - App Router doesn't use next/head
+import Head from "next/head";
 import Image from "next/image";
 
-// ✅ CORRECT NAME
 import PresaleStats from "@/components/PresaleStats";
 import InvestmentForm from "@/components/InvestmentForm";
 import InvestmentHistory from "@/components/InvestmentHistory";
