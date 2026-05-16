@@ -1,17 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import Head from "next/head";
-import Image from "next/image";
 
 import PresaleStats from "@/components/PresaleStats";
 import InvestmentForm from "@/components/InvestmentForm";
 import InvestmentHistory from "@/components/InvestmentHistory";
 
 export default function Home() {
-  // ✅ CORRECT - Let the wallet connection set the address
-
-  const [walletAddress, setWalletAddress] = useState<string | null>("");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleInvestment = () => {
@@ -20,18 +15,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
-      <Head>
-        <title>ChilledPanda - AI-Powered Digital Currency</title>
-        <meta
-          name="description"
-          content="ChilledPanda - Smarter automation, enhanced security, efficient scalability"
-        />
-      </Head>
 
       <main className="container mx-auto px-4 py-8">
         {/* Hero Section */}
         <section className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">
+          <h1 className="text-3xl sm:text-5xl font-bold text-gray-900 mb-4">
             The Future of{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-blue-600">
               AI-Powered

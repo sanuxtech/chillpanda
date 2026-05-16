@@ -1,17 +1,6 @@
-// components/layout/Footer.tsx
-"use client";
-
-import { useState, useEffect } from "react";
-
 const Footer = () => {
-  const [currentYear, setCurrentYear] = useState<number>(2024);
-
-  useEffect(() => {
-    setCurrentYear(new Date().getFullYear());
-  }, []);
-
   return (
-    <footer className="bg-black/50 border-t border-gray-800 py-12 px-4">
+    <footer className="bg-gray-900 border-t border-gray-700 py-12 px-4">
       <div className="container mx-auto max-w-6xl">
         <div className="text-center">
           <div className="flex items-center justify-center space-x-3 mb-6">
@@ -49,7 +38,7 @@ const Footer = () => {
           </div>
 
           <div className="text-gray-400 text-sm">
-            <p>© {currentYear} ChilledPanda. All rights reserved.</p>
+            <p suppressHydrationWarning>© {new Date().getFullYear()} ChilledPanda. All rights reserved.</p>
             <p className="mt-2">The future of AI-powered cryptocurrency</p>
           </div>
         </div>

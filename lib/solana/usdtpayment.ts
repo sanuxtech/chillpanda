@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // lib/solana/usdtpayment.ts - UPDATED WITH YOUR WALLET
 import { Connection, PublicKey, Transaction, Keypair } from "@solana/web3.js";
 import {
@@ -56,7 +57,7 @@ export async function sendUSDT(
 ): Promise<string> {
   try {
     const network = process.env.NEXT_PUBLIC_SOLANA_NETWORK;
-    
+
     console.log("💰 Starting USDT transfer:", {
       network,
       sender: sender.toString(),
@@ -69,7 +70,7 @@ export async function sendUSDT(
 
     // ============ HANDLE SENDER'S USDT ACCOUNT ============
     console.log("🔍 Checking sender's USDT token account...");
-    
+
     // Check if sender already has a USDT token account
     const senderAccounts = await connection.getTokenAccountsByOwner(sender, {
       mint: USDT_MINT,
@@ -80,10 +81,10 @@ export async function sendUSDT(
     if (senderAccounts.value.length === 0) {
       // User doesn't have a USDT account - we need to create one
       console.log("⚠️ No USDT account found. Creating one for the user...");
-      
+
       // Create the associated token account instruction
       const { createAssociatedTokenAccountInstruction, getAssociatedTokenAddress } = await import('@solana/spl-token');
-      
+
       // Derive the associated token account address
       const associatedTokenAccount = await getAssociatedTokenAddress(
         USDT_MINT,
@@ -96,24 +97,24 @@ export async function sendUSDT(
         sender, // Owner of the new account
         USDT_MINT // USDT mint
       );
-      
+
       // Create transaction with account creation
       const setupTransaction = new Transaction().add(createAccountInstruction);
       const { blockhash } = await connection.getLatestBlockhash();
       setupTransaction.recentBlockhash = blockhash;
       setupTransaction.feePayer = sender;
-      
+
       // User signs to create account (costs ~0.002 SOL)
       console.log("📝 Requesting signature for account creation...");
       const signedSetupTx = await signTransaction(setupTransaction);
-      
+
       console.log("🚀 Sending account creation transaction...");
       const setupSignature = await connection.sendRawTransaction(signedSetupTx.serialize());
-      
+
       // Wait for account creation to confirm
       await connection.confirmTransaction(setupSignature, "confirmed");
       console.log("✅ USDT account created! Signature:", setupSignature);
-      
+
       // Get the newly created account
       const newAccounts = await connection.getTokenAccountsByOwner(sender, {
         mint: USDT_MINT,
@@ -137,18 +138,18 @@ export async function sendUSDT(
 
     // ============ HANDLE PROJECT'S USDT ACCOUNT ============
     console.log("🔍 Setting up project's USDT token account...");
-    
+
     // For project wallet, we need to create/use its token account
     // This requires the project wallet to sign, but since we can't do that in browser,
     // we need a different approach for production
-    
+
     let projectTokenAccount: PublicKey;
-    
+
     // Check if project already has a USDT token account
     const projectAccounts = await connection.getTokenAccountsByOwner(PROJECT_WALLET, {
       mint: USDT_MINT,
     });
-    
+
     if (projectAccounts.value.length === 0) {
       // This is a problem - project wallet doesn't have a USDT account
       // In production, you should create this account beforehand
@@ -173,7 +174,7 @@ export async function sendUSDT(
 
     // ============ SEND TRANSACTION ============
     const transaction = new Transaction().add(transferInstruction);
-    
+
     const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
     transaction.recentBlockhash = blockhash;
     transaction.feePayer = sender;
@@ -200,7 +201,7 @@ export async function sendUSDT(
 
   } catch (error: any) {
     console.error("❌ USDT transfer failed:", error);
-    
+
     // Provide user-friendly error messages
     if (error.message.includes("insufficient lamports")) {
       throw new Error("You need SOL in your wallet to pay for transaction fees.");

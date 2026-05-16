@@ -1,20 +1,23 @@
-// app/api/investments/claim/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
-import mongoose from 'mongoose';
-const Investment = mongoose.models.Investment;
-const PresaleStats = mongoose.models.PresaleStats;
+import Investment from '@/models/Investment';
+import PresaleStats from '@/models/PresaleStats';
+
 export async function POST(request: NextRequest) {
   try {
     await dbConnect();
-    
+
     const body = await request.json();
     const { walletAddress, amount, transactionHash, network } = body;
 
-    console.log('🎯 Token claim request:', { walletAddress, amount });
+    if (!walletAddress || !amount || !transactionHash || !network) {
+      return NextResponse.json(
+        { success: false, error: 'walletAddress, amount, transactionHash, and network are required' },
+        { status: 400 }
+      );
+    }
 
-    // 1. Get presale stats to check if claiming is active
-    const presaleStats = await PresaleStats.findOne();
+    const presaleStats = await PresaleStats.findOne().exec();
     if (!presaleStats) {
       return NextResponse.json(
         { success: false, error: 'Presale not found' },
@@ -29,12 +32,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Find user's investments
     const investments = await Investment.find({
       walletAddress,
       status: 'paid',
-      claimable: true
-    });
+      claimable: true,
+    }).exec();
 
     if (investments.length === 0) {
       return NextResponse.json(
@@ -43,10 +45,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Calculate total claimable
     const totalClaimable = investments.reduce((sum, inv) => {
-      const remaining = inv.tokensAllocated - inv.tokensClaimed;
-      return sum + remaining;
+      return sum + (inv.tokensAllocated - inv.tokensClaimed);
     }, 0);
 
     if (amount > totalClaimable) {
@@ -56,9 +56,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 4. Process claim (simplified - claims from first investments)
     let remainingToClaim = amount;
-    const updatedInvestments = [];
 
     for (const investment of investments) {
       if (remainingToClaim <= 0) break;
@@ -69,25 +67,17 @@ export async function POST(request: NextRequest) {
       investment.tokensClaimed += toClaim;
       investment.claimTransactionHash = transactionHash;
       investment.claimDate = new Date();
-      
+
       if (investment.tokensClaimed >= investment.tokensAllocated) {
         investment.status = 'claimed';
       }
 
       await investment.save();
-      updatedInvestments.push(investment);
       remainingToClaim -= toClaim;
     }
 
-    // 5. Update presale stats
     presaleStats.totalTokensClaimed += amount;
     await presaleStats.save();
-
-    console.log('✅ Claim processed:', {
-      walletAddress,
-      amount,
-      remaining: totalClaimable - amount
-    });
 
     return NextResponse.json({
       success: true,
@@ -95,14 +85,13 @@ export async function POST(request: NextRequest) {
       data: {
         claimed: amount,
         remaining: totalClaimable - amount,
-        transactionHash
-      }
+        transactionHash,
+      },
     });
-
-  } catch (error: any) {
-    console.error('❌ Claim error:', error);
+  } catch (error: unknown) {
+    console.error('POST /api/investments/claim error:', error);
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     );
   }
