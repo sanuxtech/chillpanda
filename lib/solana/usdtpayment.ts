@@ -341,8 +341,7 @@ export async function hasUSDTAccount(
  */
 export async function createUSDTAccount(
   connection: Connection,
-  walletAddress: PublicKey,
-  signTransaction: SignTransaction
+  walletAddress: PublicKey
 ): Promise<PublicKey> {
   try {
     console.log(

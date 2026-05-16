@@ -1,29 +1,18 @@
-import { Connection, PublicKey } from '@solana/web3.js';
+import { Connection } from "@solana/web3.js";
 
 export async function verifyTransaction(
   connection: Connection,
-  signature: string,
-  expectedSender: PublicKey,
-  expectedReceiver: PublicKey,
-  expectedAmount: number
+  signature: string
 ): Promise<boolean> {
   try {
     const transaction = await connection.getTransaction(signature, {
-      commitment: 'confirmed'
+      commitment: "confirmed",
+      maxSupportedTransactionVersion: 0,
     });
-    
-    if (!transaction) return false;
-    
-    // Verify transaction details match expected values
-    // This is simplified - you'd need to parse the transaction instructions
-    console.log('Transaction verification:', {
-      signature,
-      confirmed: !!transaction
-    });
-    
-    return !!transaction; // Basic check
+
+    return !!transaction;
   } catch (error) {
-    console.error('Transaction verification failed:', error);
+    console.error("Transaction verification failed:", error);
     return false;
   }
 }
